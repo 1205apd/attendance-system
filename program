@@ -1,0 +1,60 @@
+#include<reg51.h>
+void check();
+unsigned char tag1[15]={"RA1811004010076"}; //tag ID1
+unsigned char emp1[]={"DENYM"}; //emp1 name
+unsigned char tag2[15]={"RA1811004010087"}; //tag ID2
+unsigned char emp2[]={"PRIYA"}; //emp2 name
+unsigned char tag3[15]={"RA1811004010099"}; //TAGE ID3
+unsigned char emp3[]={"PIJUSH"}; //emp3 name
+unsigned char a[15]; //Empty array to read tag from card reader
+unsigned char x; //Repeat for loop variable
+void main()
+{
+SCON=0X50; //Serial Communication initialisation usin s f r registers
+TMOD=0X20; //Timer mode
+TH1=-3; //Baud rate value 9600 of card reader 
+TR1=1; //Start Timer 1
+while(1) //infinite loop
+{
+for(x=0;x<15;x++) //Read array elements one by one
+{
+while(RI==0); //Check RI Status 
+a[x]=SBUF; //Store character received from SBUF
+SBUF=a[x]; //Restransmit by asssigning same value to SBUF
+while(TI==0); //monitor TI logic
+RI=0; //clear RI logic
+TI=0; //clear TI logic
+}
+check(); //calling check function to check individual tags
+}
+}
+void check()
+{
+if(a[0]=='R' & a[1]=='A' & a[2]=='1' & a[3]=='8' & a[4]=='1' & a[5]=='1' & a[6]=='0' & a[7]=='0' & a[8]=='4' & a[9]=='0' & a[10]=='1' & a[11]=='0' & a[12]=='0' & a[13]=='7' & a[14]=='6')
+{
+for(x=0;x<5;x++) //loop for displaying employee name
+{
+SBUF=emp1[x]; //sfr register to store employee name one by one serially
+while(TI==0);//Check TI logic
+TI=0; //Clear TI
+}
+}
+if(a[0]=='R' & a[1]=='A' & a[2]=='1' & a[3]=='8' & a[4]=='1' & a[5]=='1' & a[6]=='0' & a[7]=='0' & a[8]=='4' & a[9]=='0' & a[10]=='1' & a[11]=='0' & a[12]=='0' & a[13]=='8' & a[14]=='7')
+{
+for(x=0;x<5;x++) //loop for displaying employee name
+{
+SBUF=emp2[x]; //sfr register to store employee name one by one serially
+while(TI==0);//Check TI logic
+TI=0; //Clear TI
+}
+}
+if(a[0]=='R' & a[1]=='A' & a[2]=='1' & a[3]=='8' & a[4]=='1' & a[5]=='1' & a[6]=='0' & a[7]=='0' & a[8]=='4' & a[9]=='0' & a[10]=='1' & a[11]=='0' & a[12]=='0' & a[13]=='9' & a[14]=='9')
+{
+for(x=0;x<6;x++) //loop for displaying employee name
+{
+SBUF=emp3[x]; //sfr register to store employee name one by one serially
+while(TI==0);//Check TI logic
+TI=0; //Clear TI
+}
+}
+}
