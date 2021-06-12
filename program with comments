@@ -1,0 +1,120 @@
+// HEADER FILES AND GLOBAL VARIABLES DECLARATION
+#include<reg51.h> //includes all registers from 8051 file
+unsigned char tag1[15]={"RA1811004010076"}; //roll number ID1
+unsigned char stud1[]={"DENYM SINGH"}; //student 1 name
+unsigned char tag2[15]={"RA1811004010087"}; //roll number ID2
+unsigned char stud2[]={"PRIYADHARSHINI"}; //student 2 name
+unsigned char tag3[15]={"RA1811004010099"}; //roll number ID3
+unsigned char stud3[]={"PIJUSH MANDAL"}; //student 3 name
+unsigned char a[15]; //Empty array to read tag from card reader
+unsigned char x; //Repeat for loop variable
+sbit rs=P3^7;  //LCD REGISTER PIN AT PORT-3 7TH PIN
+sbit en=P3^6;  //LCD REGISTER PIN AT PORT-3 6TH PIN
+//**DELAY FUNCTION **/
+void delay(unsigned char t)
+{
+	int i,j; //looping variables
+	for(i=0;i<t;i++)
+	for(j=0;j<=1000;j++);
+}
+//**LCD COMMAND FUNCTION **//
+void Cmd(unsigned char t)
+{
+	rs=0; //Clear reset pin
+	P2=t; //the value passed as parameter from calling function
+	en=1; //Set enable pin
+	delay(10); //Calling delay() function
+	en=0; //Clear the enable pin (disable)
+}
+//**LCD DATA FUNCTION **//
+void Data(unsigned char t)
+{
+	rs=1; //Set reset pin
+	P2=t; //the value passed as parameter from calling function
+	en=1; //Set enable pin
+	delay(10); //Calling delay() function
+	en=0; //Clear the enable pin (disable)
+}
+//**LCD STRING FUNCTION **//
+void String(unsigned char *p)
+{
+	while(*p) //Check for condition pointer (address of Data)
+		Data(*p++); //Pass the pointer to Data function
+} 
+//** NEXTTYPE FUNCTION **//
+void nexttype()
+{
+		Cmd(0x01); //Clears the screen
+		Cmd(0x38); //COMMAND TO INITIALISE THE LCD
+		Cmd(0x0E); //DISPLAY ON CURSOR BLINKING
+		Cmd(0x80); //CURSOR POSITION ROW 1 
+		String("FOR ATTENDANCE"); //MESSAGE LINE 1
+		Cmd(0xc0); //CURSOR POSITION ROW 2 
+		String("TYPE NUMBER"); //MESSAGE LINE 2
+}
+//**CHECK FUNCTION **//
+void check()
+{
+	if(a[0]=='R' & a[1]=='A' & a[2]=='1' & a[3]=='8' & a[4]=='1' & a[5]=='1' & a[6]=='0' & a[7]=='0' & a[8]=='4' & a[9]=='0' & a[10]=='1' & a[11]=='0' & a[12]=='0' & a[13]=='7' & a[14]=='6')
+		{
+			Cmd(0x01); //Clears the screen
+			Cmd(0x80); //CURSOR POSITION ROW 1 LINE1
+			String(stud1); //MESSAGE LINE 1
+			Cmd(0xc0); //CURSOR POSITION ROW 2
+			String("IS PRESENT"); //MESSAGE LINE 2
+	    delay(500); //Calling delay function
+			nexttype(); //Calling nexttype() function
+		}
+	else if(a[0]=='R' & a[1]=='A' & a[2]=='1' & a[3]=='8' & a[4]=='1' & a[5]=='1' & a[6]=='0' & a[7]=='0' & a[8]=='4' & a[9]=='0' & a[10]=='1' & a[11]=='0' & a[12]=='0' & a[13]=='8' & a[14]=='7')
+		{
+			Cmd(0x01); //Clears the screen
+			Cmd(0x80); //CURSOR POSITION ROW 1 
+			String(stud2); //MESSAGE LINE 1
+			Cmd(0xc0);  //CURSOR POSITION ROW 2 
+			String("IS PRESENT"); //MESSAGE LINE 2
+      delay(500); //Calling delay function
+			nexttype(); //Calling nexttype() function
+		}
+	  else if(a[0]=='R' & a[1]=='A' & a[2]=='1' & a[3]=='8' & a[4]=='1' & a[5]=='1' & a[6]=='0' & a[7]=='0' & a[8]=='4' & a[9]=='0' & a[10]=='1' & a[11]=='0' & a[12]=='0' & a[13]=='9' & a[14]=='9')
+		{
+			Cmd(0x01); //Clears the screen
+			Cmd(0x80); //CURSOR POSITION ROW 1 
+			String(stud3); //MESSAGE LINE 1
+			Cmd(0xc0);  //CURSOR POSITION ROW 2 
+			String("IS PRESENT"); //MESSAGE LINE 2
+			delay(500); //Calling delay function
+			nexttype(); //Calling nexttype() function
+		}
+		else
+		{
+			Cmd(0x01); //Clears the screen
+			Cmd(0x80); //CURSOR POSITION ROW 1 
+			String("INVALID"); //MESSAGE LINE 1
+			Cmd(0xc0);  //CURSOR POSITION ROW 2 
+			String("TRY AGAIN"); //MESSAGE LINE 2
+			delay(500); //Calling delay function
+			nexttype(); //Calling nexttype() function
+		}			
+}
+//**PROJECT  MAIN FUNCTION **//
+void main()
+{
+	nexttype(); //Calling nexttype() function
+	SCON=0X50; //Use second serial port of Serial Communication registers (SCON1)
+	TMOD=0X20; //Use Timer 1 in Mode 2
+	TH1=-3; //Baud rate value 9600 of card reader 
+	TR1=1; //Start Timer 1
+	while(1) //infinite loop
+		{
+			for(x=0;x<15;x++) //Read array elements one by one
+			{
+				while(RI==0); //Check RI Status 
+				a[x]=SBUF; //Store character received from SBUF
+				SBUF=a[x]; //Restransmit by asssigning same value to SBUF
+				while(TI==0); //monitor TI logic
+				RI=0; //clear RI logic
+				TI=0; //clear TI logic
+			}
+			check(); //calling check function to check individual tags
+		}
+}
